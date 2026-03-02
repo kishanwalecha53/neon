@@ -652,7 +652,10 @@ impl PageServerConf {
             background_task_maximum_delay: Duration::ZERO,
             load_previous_heatmap: Some(true),
             generate_unarchival_heatmap: Some(true),
-            control_plane_api: Some(Url::parse("http://localhost:6666").unwrap()),
+            control_plane_api: Some(
+                Url::parse("http://localhost:6666")
+                    .expect("pageserver/src/config.rs: dummy_conf control_plane_api URL must be valid"),
+            ),
             ..Default::default()
         };
 
@@ -664,7 +667,8 @@ impl PageServerConf {
         // Cf https://databricks.atlassian.net/browse/LKB-92?focusedCommentId=6722329
         config_toml.tenant_config.lsn_lease_length = Duration::from_secs(0);
 
-        PageServerConf::parse_and_validate(NodeId(0), config_toml, &repo_dir).unwrap()
+        PageServerConf::parse_and_validate(NodeId(0), config_toml, &repo_dir)
+            .expect("pageserver/src/config.rs: dummy_conf parse_and_validate must succeed")
     }
 }
 
@@ -693,6 +697,10 @@ impl ConfigurableSemaphore {
     ///
     /// [`TenantShard::gather_size_inputs`]: crate::tenant::TenantShard::gather_size_inputs
     pub fn new(initial_permits: NonZeroUsize) -> Self {
+        tracing::info!(
+            initial_permits = initial_permits.get(),
+            "pageserver/src/config.rs: creating ConfigurableSemaphore [tomo-id-003]"
+        );
         ConfigurableSemaphore {
             initial_permits,
             inner: std::sync::Arc::new(tokio::sync::Semaphore::new(initial_permits.get())),
