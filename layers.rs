@@ -73,7 +73,8 @@ async fn read_image_file(path: impl AsRef<Path>, ctx: &RequestContext) -> Result
         virtual_file::SyncMode::Sync,
     );
     page_cache::init(100);
-    let path = Utf8Path::from_path(path.as_ref()).expect("non-Unicode path");
+    let path = Utf8Path::from_path(path.as_ref())
+        .ok_or_else(|| anyhow::anyhow!("neon/pageserver/ctl/src/layers.rs: non-Unicode path"))?;
     let file = File::open(path)?;
     let image_layer = ImageLayer::new_for_path(path, file)?;
     image_layer.dump(true, ctx).await?;
